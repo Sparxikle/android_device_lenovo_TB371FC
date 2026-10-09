@@ -1,10 +1,55 @@
 //
-// Copyright (C) 2023 The LineageOS Project
+// Copyright (C) 2026 The LineageOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
+// fstab
+prebuilt_etc {
+    name: "fstab.qcom",
+    src: "etc/fstab.qcom",
+    vendor: true,
+    ramdisk_available: true,
+}
+
+// Init configuration files
+prebuilt_etc {
+    name: "init.qcom.rc",
+    src: "etc/init.qcom.rc",
+    sub_dir: "init/hw",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "init.qcom.power.rc",
+    src: "etc/init.qcom.power.rc",
+    sub_dir: "init/hw",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "init.target.rc",
+    src: "etc/init.target.rc",
+    sub_dir: "init/hw",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "init.recovery.qcom.rc",
+    src: "etc/init.recovery.qcom.rc",
+    sub_dir: "init",
+    recovery: true,
+}
+
+prebuilt_etc {
+    name: "init.tb371fc.rc",
+    src: "etc/init.tb371fc.rc",
+    sub_dir: "init",
+    system_ext_specific: true,
+}
+
 sh_binary {
-    name: "set_permissive.sh",
-    src: "bin/set_permissive.sh"
+    name: "init.tb371fc.audio.sh",
+    src: "bin/init.tb371fc.audio.sh",
+    system_ext_specific: true,
 }

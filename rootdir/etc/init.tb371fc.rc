@@ -1,0 +1,38 @@
+# Copyright (C) 2026 The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+
+on boot
+    chown system system /proc/support_pen
+
+# Enable stylus input on the Novatek controller. On ZUI this is done through
+# vendor.lenovo.hardware.touchscreen@1.0 by the framework; nothing calls it here.
+# The driver keeps the setting and restores it after suspend/firmware reload.
+on property:sys.boot_completed=1
+    write /proc/support_pen 1,1
+
+# adb root/unroot restart adbd, which rebinds the gadget with an identical descriptor.
+# A SuperSpeed host only resets the port and keeps its stale handle until adb
+# kill-server. Alternate bcdDevice on every adbd stop so the host sees a changed
+# descriptor and re-enumerates. The swap only touches vendor.usb.bcd.*, which this
+# trigger doesn't watch, so it can't retrigger itself.
+on init
+    setprop vendor.usb.bcd.next 0x0405
+    setprop vendor.usb.bcd.prev 0x0404
+
+on property:init.svc.adbd=stopping && property:sys.usb.configfs=1
+    write /config/usb_gadget/g1/bcdDevice ${vendor.usb.bcd.next}
+    setprop vendor.usb.bcd.tmp ${vendor.usb.bcd.next}
+    setprop vendor.usb.bcd.next ${vendor.usb.bcd.prev}
+    setprop vendor.usb.bcd.prev ${vendor.usb.bcd.tmp}
+
+# Four-speaker channel mixer, see init.tb371fc.audio.sh. Re-run whenever the audio
+# HAL (and with it the ADSP session) comes back.
+service tb371fc-audio-setup /system_ext/bin/init.tb371fc.audio.sh
+    class late_start
+    user root
+    group audio
+    disabled
+    oneshot
+
+on property:sys.boot_completed=1 && property:init.svc.vendor.audio-hal=running
+    start tb371fc-audio-setup

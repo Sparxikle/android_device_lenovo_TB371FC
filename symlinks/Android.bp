@@ -1,0 +1,62 @@
+//
+// Copyright (C) 2026 The LineageOS Project
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// Stock vendor symlinks that point outside the extracted blobs (persist, wlan).
+// The vendor/rfs links come from the qcom-caf common tree.
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlan_qca_cld_WCNSS_qcom_cfg_ini",
+    vendor: true,
+    installed_location: "firmware/wlan/qca_cld/WCNSS_qcom_cfg.ini",
+    symlink_target: "/vendor/etc/wifi/WCNSS_qcom_cfg.ini",
+}
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlan_qca_cld_qca6390_WCNSS_qcom_cfg_ini",
+    vendor: true,
+    installed_location: "firmware/wlan/qca_cld/qca6390/WCNSS_qcom_cfg.ini",
+    symlink_target: "/vendor/etc/wifi/qca6390/WCNSS_qcom_cfg.ini",
+}
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlan_qca_cld_qca6390_wlan_mac_bin",
+    vendor: true,
+    installed_location: "firmware/wlan/qca_cld/qca6390/wlan_mac.bin",
+    symlink_target: "/mnt/vendor/persist/qca6390/wlan_mac.bin",
+}
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlan_qca_cld_qca6490_WCNSS_qcom_cfg_ini",
+    vendor: true,
+    installed_location: "firmware/wlan/qca_cld/qca6490/WCNSS_qcom_cfg.ini",
+    symlink_target: "/vendor/etc/wifi/qca6490/WCNSS_qcom_cfg.ini",
+}
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlan_qca_cld_qca6490_wlan_mac_bin",
+    vendor: true,
+    installed_location: "firmware/wlan/qca_cld/qca6490/wlan_mac.bin",
+    symlink_target: "/mnt/vendor/persist/qca6490/wlan_mac.bin",
+}
+
+install_symlink {
+    name: "vendor_symlink_firmware_wlanmdsp_otaupdate",
+    vendor: true,
+    installed_location: "firmware/wlanmdsp.otaupdate",
+    symlink_target: "/data/vendor/firmware/wlanmdsp.mbn",
+}
+
+phony {
+    name: "vendor_symlinks_tb371fc",
+    required: [
+        "vendor_symlink_firmware_wlan_qca_cld_WCNSS_qcom_cfg_ini",
+        "vendor_symlink_firmware_wlan_qca_cld_qca6390_WCNSS_qcom_cfg_ini",
+        "vendor_symlink_firmware_wlan_qca_cld_qca6390_wlan_mac_bin",
+        "vendor_symlink_firmware_wlan_qca_cld_qca6490_WCNSS_qcom_cfg_ini",
+        "vendor_symlink_firmware_wlan_qca_cld_qca6490_wlan_mac_bin",
+        "vendor_symlink_firmware_wlanmdsp_otaupdate",
+    ],
+}

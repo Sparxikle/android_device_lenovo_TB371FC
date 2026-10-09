@@ -1,0 +1,17 @@
+# Lenovo Keyboard Pack for Spinel (TB371FC): function-row keys that the cover's
+# driver reports through the separate "keyboard_wakeup_devices" input device.
+# Scancodes from getevent; labels from stock ZUI's Lenovo key section, mapped to
+# AOSP keycodes where one exists. The rest are left unmapped so they reach the
+# device KeyHandler as KEYCODE_UNKNOWN with their scancode.
+
+key 116   POWER
+
+key 640   SLEEP              # lock screen
+key 642   META_LEFT          # Windows-position key -> Android Action key (ZUI: language switch)
+# key 643   mic mute                  (KeyHandler)
+# key 644   touchpad on/off           (KeyHandler)
+# key 646   full screen app           (KeyHandler)
+# key 647   split screen              (KeyHandler)
+# key 649   Lenovo Super Connect      (KeyHandler)
+# key 650   App1 shortcut             (KeyHandler)
+# key 651   App2 shortcut             (KeyHandler)
