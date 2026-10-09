@@ -1,10 +1,18 @@
 //
-// Copyright (C) 2023 The LineageOS Project
+// Copyright (C) 2026 The LineageOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
+prebuilt_etc {
+    name: "init.tb371fc.rc",
+    src: "etc/init.tb371fc.rc",
+    sub_dir: "init",
+    system_ext_specific: true,
+}
+
 sh_binary {
-    name: "set_permissive.sh",
-    src: "bin/set_permissive.sh"
+    name: "init.tb371fc.audio.sh",
+    src: "bin/init.tb371fc.audio.sh",
+    system_ext_specific: true,
 }

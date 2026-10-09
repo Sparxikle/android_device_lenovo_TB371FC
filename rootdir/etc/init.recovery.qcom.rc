@@ -1,19 +1,35 @@
-import /init.recovery.qcom_decrypt.rc
-
 on init
     write /sys/class/backlight/panel0-backlight/brightness 200
-	setprop prepdecrypt.loglevel 2
+    # bootable/recovery's init.rc forces configfs off in early-init; 4.19 has no android_usb.
+    setprop sys.usb.configfs 1
 
 on fs
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
     symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
 
-on post-fs
-    start boot-hal-1-1
+on property:ro.boot.usbcontroller=*
+    setprop sys.usb.controller ${ro.boot.usbcontroller}
 
-on boot
-    start health-hal-2-1
-    # Hack to fix drm graphics init
-    wait /tmp/recovery.log
-    stop recovery
-    start recovery
+# Recovery switches gadget configs (adb <-> sideload <-> fastboot) by unbinding and
+# rebinding the UDC. On SuperSpeed the host never sees a disconnect, however long the
+# gap: it only resets the port, and if the device descriptor is unchanged it keeps the
+# old usbfs handle, so adb/fastboot on the PC talk to a dead interface. Give each mode
+# its own bcdDevice. On reset the host kernel compares descriptors, sees "device
+# firmware changed" and re-enumerates it as a new device. These fire when the config
+# is requested, before adbd/fastbootd report ffs.ready, so they land before the bind.
+on property:sys.usb.config=adb && property:sys.usb.configfs=1
+    write /config/usb_gadget/g1/bcdDevice 0x0401
+
+on property:sys.usb.config=sideload && property:sys.usb.configfs=1
+    write /config/usb_gadget/g1/bcdDevice 0x0402
+
+on property:sys.usb.config=fastboot && property:sys.usb.configfs=1
+    write /config/usb_gadget/g1/bcdDevice 0x0403
+
+# "Enable ADB" (and adb root/unroot) restart adbd without touching sys.usb.config.
+# Closing functionfs unbinds the UDC, but sys.usb.ffs.ready stays 1, so the new adbd
+# setting it to 1 again isn't a change and bootable/recovery's adb action never rebinds.
+# Clear it so that action fires again, and change bcdDevice so the host re-enumerates.
+on property:init.svc.adbd=stopping && property:sys.usb.config=adb && property:sys.usb.configfs=1
+    setprop sys.usb.ffs.ready 0
+    write /config/usb_gadget/g1/bcdDevice 0x0404
