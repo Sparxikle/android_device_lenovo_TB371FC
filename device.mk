@@ -135,3 +135,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES_DEBUG += \
     update_engine_client
+
+#DolbyManager
+PRODUCT_SOONG_NAMESPACES += hardware/dolby
+PRODUCT_PACKAGES += DolbyManager
