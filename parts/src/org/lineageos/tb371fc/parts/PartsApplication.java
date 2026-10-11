@@ -13,5 +13,6 @@ public class PartsApplication extends Application {
         super.onCreate();
         DefaultRotation.applyOnce(this);
         new SpeakerRotation(this).start();
+        new RefreshRateCap(this).start();
     }
 }
