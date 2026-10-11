@@ -57,6 +57,10 @@ persist.mm.enable.prefetch=true
 ro.media.recorder-max-base-layer-fps=60
 vendor.mm.enable.qcom_parser=16777207
 
+# Display
+# Default to the unmanaged (QDCM native) color mode, which matches stock ZUI.
+persist.sys.sf.native_mode=1
+
 # Netflix
 ro.netflix.bsp_rev=Q8250-19134-1
 

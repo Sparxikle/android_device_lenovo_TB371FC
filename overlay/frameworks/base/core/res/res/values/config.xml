@@ -10,4 +10,13 @@
     <!-- The Novatek controller drops stylus contact at 144 Hz (hover still works;
          the driver only reports contact at <= 120 Hz), so default to 120. -->
     <integer name="config_defaultPeakRefreshRate">120</integer>
+
+    <!-- Color modes shown in Settings > Display > Colors. ZUI's colorservice set the
+         panel up in QDCM "native"; managed sRGB-b looks yellow on this panel.
+         0 = Natural (managed sRGB), 1 = Boosted, 2 = Saturated (unmanaged, QDCM native). -->
+    <integer-array name="config_availableColorModes">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
 </resources>
