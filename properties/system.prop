@@ -1,3 +1,7 @@
+# Audio
+# Feed the rear speaker pair of the quad speaker output from stereo tracks.
+ro.audio.remix_stereo_to_rear=true
+
 # Bluetooth
 # Since T the AOSP stack only starts profiles whose bluetooth.profile.* prop is true;
 # without them everything bonds but nothing connects.

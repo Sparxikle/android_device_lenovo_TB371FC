@@ -59,9 +59,12 @@ PRODUCT_PACKAGES += \
     TB371FCParts \
     tinymix
 
+# Four speakers: the speaker deep-buffer output is opened as quad (see the policy
+# file), and ro.audio.remix_stereo_to_rear makes AudioFlinger feed the rear pair
+# from stereo tracks. product/vendor_overlay is never mounted on this build, so
+# the policy is bind-mounted over the stock one from init.tb371fc.rc instead.
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_PRODUCT)/vendor_overlay/30/etc/audio/audio_policy_configuration.xml \
-    $(DEVICE_PATH)/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_PRODUCT)/vendor_overlay/30/etc/audio_policy_configuration.xml
+    $(DEVICE_PATH)/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/tb371fc/audio_policy_configuration.xml
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1840

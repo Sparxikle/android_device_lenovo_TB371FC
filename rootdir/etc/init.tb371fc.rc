@@ -24,3 +24,7 @@ on property:init.svc.adbd=stopping && property:sys.usb.configfs=1
     setprop vendor.usb.bcd.tmp ${vendor.usb.bcd.next}
     setprop vendor.usb.bcd.next ${vendor.usb.bcd.prev}
     setprop vendor.usb.bcd.prev ${vendor.usb.bcd.tmp}
+
+# The stock vendor policy is stereo-only. Replace it before audioserver starts.
+on post-fs
+    mount none /system_ext/etc/tb371fc/audio_policy_configuration.xml /vendor/etc/audio_policy_configuration.xml bind
