@@ -55,10 +55,8 @@ AB_OTA_POSTINSTALL_CONFIG += \
     POSTINSTALL_OPTIONAL_system=true
 
 # Audio
-# Four-speaker support: DSP channel mixer at boot + rotation-driven amp mapping.
 PRODUCT_PACKAGES += \
     TB371FCParts \
-    init.tb371fc.audio.sh \
     tinymix
 
 PRODUCT_COPY_FILES += \

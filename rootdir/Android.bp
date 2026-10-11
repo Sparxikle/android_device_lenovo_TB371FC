@@ -10,9 +10,3 @@ prebuilt_etc {
     sub_dir: "init",
     system_ext_specific: true,
 }
-
-sh_binary {
-    name: "init.tb371fc.audio.sh",
-    src: "bin/init.tb371fc.audio.sh",
-    system_ext_specific: true,
-}

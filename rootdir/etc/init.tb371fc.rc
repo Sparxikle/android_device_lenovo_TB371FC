@@ -24,15 +24,3 @@ on property:init.svc.adbd=stopping && property:sys.usb.configfs=1
     setprop vendor.usb.bcd.tmp ${vendor.usb.bcd.next}
     setprop vendor.usb.bcd.next ${vendor.usb.bcd.prev}
     setprop vendor.usb.bcd.prev ${vendor.usb.bcd.tmp}
-
-# Four-speaker channel mixer, see init.tb371fc.audio.sh. Re-run whenever the audio
-# HAL (and with it the ADSP session) comes back.
-service tb371fc-audio-setup /system_ext/bin/init.tb371fc.audio.sh
-    class late_start
-    user root
-    group audio
-    disabled
-    oneshot
-
-on property:sys.boot_completed=1 && property:init.svc.vendor.audio-hal=running
-    start tb371fc-audio-setup
