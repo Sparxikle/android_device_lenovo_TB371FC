@@ -101,6 +101,18 @@ PRODUCT_PACKAGES += \
     f2fs_io \
     check_f2fs
 
+# Face unlock
+# Stock has no face HAL (ZUI's was app-side). Use the software sense provider:
+# packages/apps/FaceUnlock plus the frameworks/base sense provider patch.
+PRODUCT_PACKAGES += \
+    FaceUnlock
+
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    ro.face.sense_service=true
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/android.hardware.biometrics.face.xml
+
 # Input
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(DEVICE_PATH)/configs/idc,$(TARGET_COPY_OUT_PRODUCT)/usr/idc) \
