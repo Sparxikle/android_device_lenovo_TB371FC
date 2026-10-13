@@ -24,6 +24,9 @@ DROP_SECTIONS = {
     'Keymaster',  # Lenovo ships keymaster 4.1, listed below
 }
 taken = set()
+# Never shipped. 32-bit mm-camera face detection: only the 64-bit camx stack
+# dlopens it (the provider is 64-bit only), and it imports LIBC_PRIVATE symbols.
+taken.update({'vendor/lib/libmmcamera_faceproc.so', 'vendor/lib/libmmcamera_faceproc2.so'})
 out = []
 
 # Libraries the source tree builds as vendor modules; shipping the stock copy clashes.
@@ -36,6 +39,18 @@ BUILT_FROM_SOURCE = {'libalsautils.so', 'libnbaio_mono.so', 'libwebrtc_audio_pre
                      # sh_binary modules in the qcom display / media repos
                      'init.qti.display_boot.sh', 'init.qti.media.sh'}
 
+# Stock files whose path is also installed by an AOSP source module.
+# The stock camera provider rc has `override`, so a later-parsed name wins over AOSP's rc.
+RENAME = {
+    # Qualcomm's tinycompress has the metadata/gapless API the audio blobs use;
+    # AOSP's libtinycompress doesn't. Ship it under its own name.
+    'vendor/lib/libtinycompress.so': 'vendor/lib/libtinycompress.so:vendor/lib/libtinycompress-qti.so',
+    'vendor/lib64/libtinycompress.so': 'vendor/lib64/libtinycompress.so:vendor/lib64/libtinycompress-qti.so',
+    'vendor/etc/init/android.hardware.camera.provider@2.4-service_64.rc':
+        'vendor/etc/init/android.hardware.camera.provider@2.4-service_64.rc:'
+        'vendor/etc/init/vendor.qti.camera.provider@2.4-service_64.rc',
+}
+
 def emit_section(name, entries):
     entries = [e for e in entries if e.split(';')[0].split(':')[0].split('|')[0].lstrip('-') not in taken
                and e.split(';')[0].split('/')[-1] not in BUILT_FROM_SOURCE]
@@ -44,7 +59,7 @@ def emit_section(name, entries):
     for e in sorted(entries, key=lambda s: s.lstrip('-')):
         src = e.split(';')[0].split(':')[0].split('|')[0].lstrip('-')
         taken.add(src)
-        out.append(e)
+        out.append(RENAME.get(e, e))
 
 # --- 1. common kona blobs from the xiaomi list
 sec, buf = None, {}
@@ -94,17 +109,30 @@ emit_section('Camera', pick(under('vendor/lib/camera/', 'vendor/lib64/camera/'))
         r'libScenescape|libmorpho_Ldc|libFace3D\w*|libface3d_dev|libcvp\w*|libsynx|libhalide_hexagon_host|'
         r'libcamera2ndk_vendor|libos|libqcodec2\w*|vendor\.qti\.hardware\.camera\.\S+|vendor\.qti\.hardware\.cvp@\S+|'
         r'camera\.device@\S+|libtracker_6dof_impl|libjson|libtinyxml)\.so$', f) is not None))
+# AOSP's HIDL camera provider/device defaults no longer build on 17; ship the stock ones.
+emit_section('Audio (QTI tinycompress)', ['vendor/lib/libtinycompress.so', 'vendor/lib64/libtinycompress.so'])
+emit_section('Camera provider', pick(lambda f: re.search(
+    r'(bin/hw/android\.hardware\.camera\.provider@2\.4-service_64|'
+    r'etc/init/android\.hardware\.camera\.provider@2\.4-service_64\.rc|'
+    r'lib(64)?/(hw/)?android\.hardware\.camera\.provider@2\.4-(impl|legacy|external)\.so)$', f) is not None))
 emit_section('Camera configs', pick(lambda f: f in ('vendor/etc/morpho_ldc.bin',)) + pick(under('vendor/etc/face3d/')) +
     pick(lambda f: f == 'vendor/bin/init.dtab.camera.sh'))
 emit_section('Camera firmware', pick(lambda f: f == 'vendor/firmware/CAMERA_ICP.elf'))
 emit_section('Display calibration', pick(lambda f: re.fullmatch(r'vendor/etc/qdcm_calib_data_nt36532\w+\.xml', f) is not None))
+# Goodix TEE fingerprint: legacy fingerprint.default HAL behind the AOSP
+# IBiometricsFingerprint@2.1 service, which is built from source.
+emit_section('Fingerprint', pick(names(('vendor/lib64',), 'libgf_ca.so', 'libgf_hal.so',
+        'libgoodixhwfingerprint.so', 'libvendor.goodix.hardware.biometrics.fingerprint@2.1.so')) +
+    pick(lambda f: f == 'vendor/lib64/hw/fingerprint.default.so'))
 emit_section('Firmware', [f for f in pick(under('vendor/firmware/'))
     if f.count('/') == 2 and not f.endswith(('.cnt',)) and f != 'vendor/firmware/CAMERA_ICP.elf'] +
     pick(under('vendor/firmware/wlan/')))
 emit_section('Init scripts', [f for f in pick(lambda f: re.fullmatch(r'vendor/bin/init\.(qcom|qti|class_main|mdm|crda)\S*\.sh', f) is not None)
     if f != 'vendor/bin/init.qcom.usb.sh'])  # built from vendor/qcom/opensource/usb
 emit_section('Input (keyboard cover)', pick(lambda f: 'tinno_keyboard' in f or 'motorola.hardware.input' in f))
-emit_section('Kernel modules', pick(under('vendor/lib/modules/')))
+# Kernel modules: not shipped. The kernel is built from source and stock .ko files are
+# signed with Lenovo's key (MODULE_SIG_FORCE), so mark them taken to keep them out.
+taken.update(pick(under('vendor/lib/modules/')))
 emit_section('Keymaster', pick(lambda f: 'keymaster@4.1' in f and not f.endswith('.xml')) +
     pick(names(('vendor/lib64',), 'libkeymasterdeviceutils.so', 'libkeymasterprovision.so',
         'libkeymasterutils.so', 'libqtikeymaster4.so', 'libspcom.so')))

@@ -6,3 +6,8 @@
 
 # files in firmware
 /firmware(/.*)?         u:object_r:firmware_file:s0
+# Touch
+/dev/lenovo_penraw      u:object_r:lenovo_device:s0
+
+# Fingerprint
+/dev/goodix_fp          u:object_r:vendor_goodix_fp_device:s0

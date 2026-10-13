@@ -7,11 +7,15 @@
 // Stock vendor symlinks that point outside the extracted blobs (persist, wlan).
 // The vendor/rfs links come from the qcom-caf common tree.
 
+// Stock points this at /vendor/etc/wifi/WCNSS_qcom_cfg.ini, which doesn't exist:
+// Lenovo's kernel loads the per-chip qca6390/ path below. This kernel's qcacld
+// asks for the flat path, so point it at the QCA6390 config (keep this when
+// regenerating with tools/gen_blobs.py).
 install_symlink {
     name: "vendor_symlink_firmware_wlan_qca_cld_WCNSS_qcom_cfg_ini",
     vendor: true,
     installed_location: "firmware/wlan/qca_cld/WCNSS_qcom_cfg.ini",
-    symlink_target: "/vendor/etc/wifi/WCNSS_qcom_cfg.ini",
+    symlink_target: "/vendor/etc/wifi/qca6390/WCNSS_qcom_cfg.ini",
 }
 
 install_symlink {

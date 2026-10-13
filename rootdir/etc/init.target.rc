@@ -29,7 +29,6 @@
 #
 
 on early-init
-    exec u:r:vendor_modprobe:s0 -- /vendor/bin/modprobe -a -d /vendor/lib/modules audio_q6_pdr audio_q6_notifier audio_snd_event audio_apr audio_adsp_loader audio_q6 audio_native audio_usf audio_pinctrl_wcd audio_pinctrl_lpi audio_swr audio_platform audio_hdmi audio_stub audio_wcd_core audio_wsa881x audio_bolero_cdc audio_wsa_macro audio_va_macro audio_rx_macro audio_tx_macro audio_wcd938x audio_wcd938x_slave audio_machine_kona audio_tfa98xx
     write /proc/sys/kernel/sched_boost 1
 
 on init
@@ -129,8 +128,6 @@ on boot
     #Spinel code for OSPINEL-12 by gucheng1 at 20230116 start
     setprop persist.vendor.cp.support_qc3p5 0
     #Spinel code for OSPINEL-12 by gucheng1 at 20230116 End
-    # Load all wlan drivers
-    exec_background u:r:vendor_modprobe:s0 -- /vendor/bin/modprobe -a -d /vendor/lib/modules/ qca_cld3_qca6390 qca_cld3_qca6490
 
     #Spinel code for OSPINEL-354 by wuxingyue at 2023-02-02 start
     chmod 777 /sys/bus/i2c/devices/6-0034/reg

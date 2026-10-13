@@ -1,14 +1,26 @@
 # Copyright (C) 2026 The LineageOS Project
 # SPDX-License-Identifier: Apache-2.0
 
-on boot
+# Touch controller nodes of Lenovo's touchscreen HAL, set up as on stock.
+on post-fs-data
+    chown system system /proc/gesture_control
+    chown system system /proc/game_mode
+    chown system system /proc/panel_direction
     chown system system /proc/support_pen
+    chown system system /proc/edge_grid_zone
 
-# Enable stylus input on the Novatek controller. On ZUI this is done through
-# vendor.lenovo.hardware.touchscreen@1.0 by the framework; nothing calls it here.
-# The driver keeps the setting and restores it after suspend/firmware reload.
+on late-fs
+    chmod 0644 /proc/gesture_control
+
+# Pen mode ("<enable>,<type>", type 1 for the Precision Pen 3) is set by
+# Lenovo's HAL from persist.vendor.pen on ZUI; nothing does that here. The
+# driver keeps it across suspend, firmware reloads and pen charging.
 on property:sys.boot_completed=1
-    write /proc/support_pen 1,1
+    chmod 0444 /dev/lenovo_penraw
+    write /proc/support_pen ${persist.vendor.pen:-1,1}
+
+on property:persist.vendor.pen=*
+    write /proc/support_pen ${persist.vendor.pen}
 
 # adb root/unroot restart adbd, which rebinds the gadget with an identical descriptor.
 # A SuperSpeed host only resets the port and keeps its stale handle until adb
@@ -24,15 +36,3 @@ on property:init.svc.adbd=stopping && property:sys.usb.configfs=1
     setprop vendor.usb.bcd.tmp ${vendor.usb.bcd.next}
     setprop vendor.usb.bcd.next ${vendor.usb.bcd.prev}
     setprop vendor.usb.bcd.prev ${vendor.usb.bcd.tmp}
-
-# Four-speaker channel mixer, see init.tb371fc.audio.sh. Re-run whenever the audio
-# HAL (and with it the ADSP session) comes back.
-service tb371fc-audio-setup /system_ext/bin/init.tb371fc.audio.sh
-    class late_start
-    user root
-    group audio
-    disabled
-    oneshot
-
-on property:sys.boot_completed=1 && property:init.svc.vendor.audio-hal=running
-    start tb371fc-audio-setup

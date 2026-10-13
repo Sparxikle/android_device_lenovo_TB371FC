@@ -1,3 +1,7 @@
+# Audio
+# Feed the rear speaker pair of the quad speaker output from stereo tracks.
+ro.audio.remix_stereo_to_rear=true
+
 # Bluetooth
 # Since T the AOSP stack only starts profiles whose bluetooth.profile.* prop is true;
 # without them everything bonds but nothing connects.
@@ -36,9 +40,17 @@ persist.mm.enable.prefetch=true
 ro.media.recorder-max-base-layer-fps=60
 vendor.mm.enable.qcom_parser=16777207
 
+# Display
+# Default to the unmanaged (QDCM native) color mode, which matches stock ZUI.
+persist.sys.sf.native_mode=1
+
 # Sensors
 persist.vendor.sensors.enable.mag_filter=true
 
 # Wifi Display
 persist.debug.wfd.enable=1
 persist.sys.wfd.virtual=0
+
+# BPF
+# Android 17's netd programs only exist for 5.10+; the stock kernel is 4.19.157.
+ro.bpf.kver_override=5.10.239

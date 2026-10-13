@@ -3,3 +3,16 @@
 type persist_file, file_type;
 
 type dsp_file, file_type;
+
+# Novatek touch controller nodes of Lenovo's touchscreen HAL
+type vendor_proc_touchscreen_file, fs_type, proc_type;
+
+# Keyboard folio state (/sys/kb_status) and stylus charger (ctn730)
+type vendor_sysfs_hall, fs_type, sysfs_type;
+type vendor_sysfs_pencil, fs_type, sysfs_type;
+
+# /dev/lenovo_penraw
+type lenovo_device, dev_type;
+
+# Goodix fingerprint
+type vendor_goodix_fp_device, dev_type;

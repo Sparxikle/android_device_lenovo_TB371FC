@@ -22,6 +22,10 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/launch.mk)
 # The device launched with R-frozen vendor (ro.board.first_api_level=30).
 PRODUCT_SHIPPING_API_LEVEL := 30
 
+# The prebuilt stock kernel (4.19.157) is older than the 4.19 LTS the
+# framework matrix asks for; only the OTA-time check enforces this.
+PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
+
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.audio.low_latency.xml \
@@ -51,7 +55,8 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.ipsec_tunnel_migration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.ipsec_tunnel_migration.xml \
     frameworks/native/data/etc/android.software.midi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.midi.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.sip.voip.xml \
-    frameworks/native/data/etc/android.software.verified_boot.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.verified_boot.xml
+    frameworks/native/data/etc/android.software.verified_boot.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.verified_boot.xml \
+    frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.vulkan.deqp.level-2020-03-01.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.vulkan.deqp.level.xml
@@ -114,11 +119,14 @@ PRODUCT_COPY_FILES += \
 
 $(call soong_config_set_bool,android_hardware_audio,skip_speaker_layout_channel_mask_field,true)
 
-# Four-speaker support: DSP channel mixer at boot + rotation-driven amp mapping.
+# Four-speaker support: rotation-driven amp mapping.
 PRODUCT_PACKAGES += \
     TB371FCParts \
-    init.tb371fc.audio.sh \
     tinymix
+
+# Four speakers: the speaker deep-buffer output is opened as quad (see the policy
+# file), and ro.audio.remix_stereo_to_rear makes AudioFlinger feed the rear pair
+# from stereo tracks.
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1840
@@ -140,15 +148,11 @@ $(call soong_config_set_bool,QTI_GPT_UTILS,USE_BSG_FRAMEWORK,false)
 PRODUCT_PACKAGES_DEBUG += \
     bootctl
 
-# Camera
-PRODUCT_PACKAGES += \
-    android.hardware.camera.provider@2.4-impl \
-    android.hardware.camera.provider@2.4-service_64
-
 # Display
 PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@3.0-impl-qti-display \
     android.hardware.graphics.mapper@4.0-impl-qti-display \
+    gralloc.qcom \
     vendor.qti.hardware.display.allocator-service \
     vendor.qti.hardware.display.composer-service \
     vendor.qti.hardware.memtrack-service
@@ -171,6 +175,28 @@ PRODUCT_PACKAGES += \
     sg_write_buffer \
     f2fs_io \
     check_f2fs
+
+# Fingerprint
+PRODUCT_PACKAGES += \
+    android.hardware.biometrics.fingerprint@2.1-service
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml
+
+# Face unlock
+# Stock has no face HAL (ZUI's was app-side). Use the software sense provider:
+# packages/apps/FaceUnlock plus the frameworks/base sense provider patch.
+PRODUCT_PACKAGES += \
+    FaceUnlock
+
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    ro.face.sense_service=true
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/android.hardware.biometrics.face.xml
+
+# Graphics
+PRODUCT_PACKAGES += mesa3d
 
 # Health
 PRODUCT_PACKAGES += \
@@ -203,6 +229,9 @@ PRODUCT_PACKAGES += \
 
 $(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
 
+# Power: double-tap wake through the touch driver
+$(call soong_config_set,power_libperfmgr,mode_extension_lib,//$(DEVICE_PATH):libperfmgr-ext-tb371fc)
+
 # Media
 PRODUCT_PACKAGES += \
     media_codecs_c2.xml \
@@ -216,6 +245,9 @@ DEVICE_PACKAGE_OVERLAYS += \
     $(DEVICE_PATH)/overlay \
     $(DEVICE_PATH)/overlay-lineage
 
+PRODUCT_PACKAGES += \
+    WifiResTarget
+
 # Partitions
 PRODUCT_PACKAGES += \
     vendor_bt_firmware_mountpoint \
@@ -225,6 +257,7 @@ PRODUCT_PACKAGES += \
 # Power
 PRODUCT_PACKAGES += \
     android.hardware.power-service.lineage-libperfmgr \
+    libperfmgr \
     libqti-perfd-client
 
 PRODUCT_COPY_FILES += \
@@ -266,6 +299,11 @@ PRODUCT_PACKAGES += \
     init.tb371fc.rc \
     vendor_symlinks_tb371fc
 
+# Bring-up boot logger (remove once the device boots)
+PRODUCT_PACKAGES += \
+    init.tb371fc.bootlog.rc \
+    tb371fc-bootlog.sh
+
 # Sensors
 PRODUCT_PACKAGES += \
     android.hardware.sensors-service.multihal
@@ -275,6 +313,7 @@ PRODUCT_SOONG_NAMESPACES += \
     $(DEVICE_PATH) \
     hardware/google/interfaces \
     hardware/google/pixel \
+    hardware/google/pixel/power-libperfmgr \
     hardware/lineage/interfaces/power-libperfmgr \
     hardware/qcom-caf/bootctrl \
     hardware/qcom-caf/common/libqti-perfd-client \

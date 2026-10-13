@@ -1,0 +1,2 @@
+# Double-tap wake
+allow hal_power_default vendor_proc_touchscreen_file:file rw_file_perms;

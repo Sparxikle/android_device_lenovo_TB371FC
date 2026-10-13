@@ -48,8 +48,16 @@ prebuilt_etc {
     system_ext_specific: true,
 }
 
+// Bring-up boot logger (remove once the device boots)
 sh_binary {
-    name: "init.tb371fc.audio.sh",
-    src: "bin/init.tb371fc.audio.sh",
-    system_ext_specific: true,
+    name: "tb371fc-bootlog.sh",
+    src: "bin/tb371fc-bootlog.sh",
+    vendor: true,
+}
+
+prebuilt_etc {
+    name: "init.tb371fc.bootlog.rc",
+    src: "etc/init.tb371fc.bootlog.rc",
+    sub_dir: "init",
+    vendor: true,
 }

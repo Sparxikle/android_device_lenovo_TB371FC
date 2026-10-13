@@ -1,0 +1,13 @@
+# Touch
+genfscon proc /edge_grid_zone   u:object_r:vendor_proc_touchscreen_file:s0
+genfscon proc /fw_pen_state     u:object_r:vendor_proc_touchscreen_file:s0
+genfscon proc /game_mode        u:object_r:vendor_proc_touchscreen_file:s0
+genfscon proc /gesture_control  u:object_r:vendor_proc_touchscreen_file:s0
+genfscon proc /panel_direction  u:object_r:vendor_proc_touchscreen_file:s0
+genfscon proc /support_pen      u:object_r:vendor_proc_touchscreen_file:s0
+
+# Keyboard folio
+genfscon sysfs /kb_status       u:object_r:vendor_sysfs_hall:s0
+
+# Stylus charger
+genfscon sysfs /devices/virtual/misc/ctn730 u:object_r:vendor_sysfs_pencil:s0

@@ -10,4 +10,50 @@
     <!-- The Novatek controller drops stylus contact at 144 Hz (hover still works;
          the driver only reports contact at <= 120 Hz), so default to 120. -->
     <integer name="config_defaultPeakRefreshRate">120</integer>
+
+    <!-- Color modes shown in Settings > Display > Colors. ZUI's colorservice set the
+         panel up in QDCM "native"; managed sRGB-b looks yellow on this panel.
+         0 = Natural (managed sRGB), 1 = Boosted, 2 = Saturated (unmanaged, QDCM native). -->
+    <integer-array name="config_availableColorModes">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <!-- Double-tap wake: the Novatek controller keeps scanning with the screen
+         off; the power HAL arms it through /proc/gesture_control. -->
+    <bool name="config_supportDoubleTapWake">true</bool>
+
+    <!-- From stock /vendor/overlay/FrameworksResTarget.apk (the source-built
+         vendor no longer ships it). -->
+
+    <!-- No hardware navigation keys: without this there is no navigation bar
+         or taskbar, and Settings hides the navigation mode choice. -->
+    <bool name="config_showNavigationBar">true</bool>
+
+    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+    <bool name="config_dozeAlwaysOnEnabled">false</bool>
+
+    <!-- Headset jack events come from the audio input device. -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+    <!-- Wi-Fi hotspot interface names of the QCA6390 driver. -->
+    <string-array translatable="false" name="config_tether_wifi_regexs">
+        <item>"softap0"</item>
+        <item>"wigig0"</item>
+    </string-array>
+
+    <!-- Bluetooth power figures for battery stats. -->
+    <integer translatable="false" name="config_bluetooth_idle_cur_ma">6</integer>
+    <integer translatable="false" name="config_bluetooth_rx_cur_ma">28</integer>
+    <integer translatable="false" name="config_bluetooth_tx_cur_ma">36</integer>
+    <integer translatable="false" name="config_bluetooth_operating_voltage_mv">3700</integer>
+
+    <!-- Goodix fingerprint HAL (IBiometricsFingerprint@2.1): ID 0, strong. -->
+    <string-array name="config_biometric_sensors" translatable="false">
+        <item>0:2:15</item>
+    </string-array>
+
+    <!-- The Goodix fingerprint sensor sits in the power key. -->
+    <bool name="config_is_powerbutton_fps">true</bool>
 </resources>

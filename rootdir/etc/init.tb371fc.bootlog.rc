@@ -1,0 +1,3 @@
+# Bring-up only, see tb371fc-bootlog.sh. Remove once the device boots.
+on early-init
+    exec_background u:r:su:s0 root root -- /vendor/bin/tb371fc-bootlog.sh

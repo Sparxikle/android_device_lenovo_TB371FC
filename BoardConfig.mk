@@ -83,16 +83,42 @@ BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 
-# Kernel - prebuilt (no source released for TB371FC)
-# kernel-header/ holds the 4.19.157 UAPI headers so generated_kernel_headers works.
-# The matching .ko files come from the stock vendor via proprietary-files.txt.
-TARGET_KERNEL_SOURCE := $(DEVICE_PATH)/kernel-header
-TARGET_KERNEL_CONFIG := TB371FC_defconfig
-TARGET_KERNEL_NO_GCC := true
-TARGET_FORCE_PREBUILT_KERNEL := true
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
+# Kernel
+# LineageOS sm8250 4.19 kernel (with the BPF/BTF backports Android 17 needs)
+# plus TB371FC drivers. The device tree blobs stay stock for now.
+TARGET_KERNEL_SOURCE := kernel/lenovo/sm8250
+TARGET_KERNEL_CONFIG := \
+    vendor/kona-perf_defconfig \
+    vendor/debugfs.config \
+    vendor/lenovo/tb371fc.config
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt/dtb
+
+# Bring-up debug: `export TB371FC_KERNEL_DEBUG=true` before building for a
+# verbose kernel log (initcall_debug) and the slim kernel config.
+ifeq ($(TB371FC_KERNEL_DEBUG),true)
+TARGET_KERNEL_CONFIG += vendor/lenovo/tb371fc-debug.config vendor/lenovo/tb371fc-slim.config
+# Stock DTB plus a ramoops region, with CVP disabled (tools/make-dtb-debug.sh).
+# The watchdog stays enabled, so a hard hang resets the board instead of
+# freezing it.
+BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt/dtb-debug
+# Keep this short: the v2 boot header only has 512 bytes for the cmdline.
+BOARD_KERNEL_CMDLINE += console=tty0 loglevel=8 initcall_debug
+endif
+
+# Bring-up: `export TB371FC_SKIP_LATE=true` skips the suspect late initcalls
+# through initcall_blacklist= in the built-in kernel cmdline.
+ifeq ($(TB371FC_SKIP_LATE),true)
+TARGET_KERNEL_CONFIG += vendor/lenovo/tb371fc-skip.config
+endif
+
+# Bring-up: `export TB371FC_REBOOT_AT=N` makes the kernel reset the board when
+# boot reaches checkpoint N (see tb_checkpoint() in the kernel). Only the
+# cmdline changes, so `m bootimage` is enough between tests.
+ifneq ($(TB371FC_REBOOT_AT),)
+# Prepended so it can never be pushed past the 512-byte header field.
+BOARD_KERNEL_CMDLINE := tb_reboot_at=$(TB371FC_REBOOT_AT) $(BOARD_KERNEL_CMDLINE)
+endif
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo.img
 
 # Metadata
@@ -122,6 +148,16 @@ BOARD_SUPER_PARTITION_SIZE := 12884901888
 BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
 BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := $(ALL_PARTITIONS)
 BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9122611200
+
+# Headroom for GApps: MindTheGapps installs into product/system_ext and can't
+# resize logical partitions. Keep the images under the
+# qti_dynamic_partitions group size above. Set before the Lineage defaults (?=).
+BOARD_SYSTEMIMAGE_PARTITION_RESERVED_SIZE := 104857600
+BOARD_SYSTEM_EXTIMAGE_PARTITION_RESERVED_SIZE := 209715200
+BOARD_PRODUCTIMAGE_PARTITION_RESERVED_SIZE := 1073741824
+BOARD_SYSTEMIMAGE_EXTFS_INODE_COUNT := -1
+BOARD_SYSTEM_EXTIMAGE_EXTFS_INODE_COUNT := -1
+BOARD_PRODUCTIMAGE_EXTFS_INODE_COUNT := -1
 
 # Partitions - reserved size
 -include vendor/lineage/config/BoardConfigReservedSize.mk
@@ -182,3 +218,9 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 
 # Inherit the proprietary files
 include vendor/lenovo/TB371FC/BoardConfigVendor.mk
+
+#Replace stock Vulkan drivers for mesa3d
+BOARD_MESA3D_USES_MESON_BUILD := true
+BOARD_MESA3D_GALLIUM_DRIVERS :=
+BOARD_MESA3D_VULKAN_DRIVERS := freedreno
+BOARD_MESA3D_MESON_ARGS := -Dfreedreno-kmds=kgsl

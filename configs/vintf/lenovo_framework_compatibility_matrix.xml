@@ -8,4 +8,13 @@
             <instance>default</instance>
         </interface>
     </hal>
+    <!-- Goodix fingerprint extension, served by the fingerprint HAL (stock blob). -->
+    <hal format="hidl" optional="true">
+        <name>vendor.goodix.hardware.biometrics.fingerprint</name>
+        <version>2.1</version>
+        <interface>
+            <name>IGoodixFingerprintDaemon</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
 </compatibility-matrix>
