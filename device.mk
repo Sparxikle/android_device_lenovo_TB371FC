@@ -22,8 +22,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/launch.mk)
 # The device launched with R-frozen vendor (ro.board.first_api_level=30).
 PRODUCT_SHIPPING_API_LEVEL := 30
 
-# The prebuilt stock kernel (4.19.157) is older than the 4.19 LTS the
-# framework matrix asks for; only the OTA-time check enforces this.
 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 
 # Permissions
@@ -46,7 +44,7 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.host.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.host.xml \
     frameworks/native/data/etc/android.hardware.vulkan.compute-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.compute-0.xml \
     frameworks/native/data/etc/android.hardware.vulkan.level-1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level-1.xml \
-    frameworks/native/data/etc/android.hardware.vulkan.version-1_1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version-1_1.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.version-1_4.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version-1_3.xml \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.direct.xml \
     frameworks/native/data/etc/android.hardware.wifi.passpoint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.passpoint.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml \
@@ -124,16 +122,10 @@ PRODUCT_PACKAGES += \
     TB371FCParts \
     tinymix
 
-# Four speakers: the speaker deep-buffer output is opened as quad (see the policy
-# file), and ro.audio.remix_stereo_to_rear makes AudioFlinger feed the rear pair
-# from stereo tracks.
-
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1840
 TARGET_SCREEN_WIDTH := 2944
 
-# The panel is portrait-native; draw the boot animation in landscape with the
-# USB-C port on the right, like ZUI. The suffix is the internal panel's display id.
 PRODUCT_PRODUCT_PROPERTIES += \
     ro.bootanim.set_orientation_4630947161651687041=ORIENTATION_90
 
@@ -142,7 +134,6 @@ PRODUCT_PACKAGES += \
     android.hardware.boot-service.qti \
     android.hardware.boot-service.qti.recovery
 
-# 4.19 has no UFS BSG node; gpt-utils must switch the XBL boot LUN via /dev/sg*
 $(call soong_config_set_bool,QTI_GPT_UTILS,USE_BSG_FRAMEWORK,false)
 
 PRODUCT_PACKAGES_DEBUG += \
@@ -157,6 +148,15 @@ PRODUCT_PACKAGES += \
     vendor.qti.hardware.display.composer-service \
     vendor.qti.hardware.memtrack-service
 
+#Codec2
+PRODUCT_PACKAGES += \
+    vendor.qti.media.c2@1.0-service
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    debug.stagefright.c2inputsurface=-1 \
+    media.stagefright.thumbnail.prefer_hw_codecs=true
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/vendor.qti.media.c2@1.0-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/vendor.qti.media.c2@1.0-service.rc
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey
@@ -184,8 +184,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml
 
 # Face unlock
-# Stock has no face HAL (ZUI's was app-side). Use the software sense provider:
-# packages/apps/FaceUnlock plus the frameworks/base sense provider patch.
 PRODUCT_PACKAGES += \
     FaceUnlock
 
@@ -271,18 +269,10 @@ PRODUCT_PACKAGES += \
     libqti_vndfwk_detect.vendor
 
 # Recovery
-# Touch reports in the panel's native portrait axes (X 0-18400, Y 0-29440) while
-# recovery draws landscape: swap X/Y and flip Y, like TWRP's SWAP_XY + FLIP_Y.
-# The panel uses a dual layer mixer DSC topology; minui has to drive it with one
-# plane per mixer through atomic commits (needs the bootable/recovery minui change).
 PRODUCT_VENDOR_PROPERTIES += \
     ro.minui.default_touch_rotation=ROTATION_RIGHT \
     ro.minui.drm_sde_split=true
 
-# The Novatek touch IC runs firmware from RAM; the driver requests it on resume.
-# Recovery doesn't mount /vendor, so ship it in the ramdisk where the kernel's direct
-# loader (/lib/firmware) and ueventd's fallback (/vendor/firmware) both find it.
-# Taken from the extracted stock blobs.
 NOVATEK_FW := vendor/lenovo/TB371FC/proprietary/vendor/firmware/novatek_ts_tm_fw_6.bin
 PRODUCT_COPY_FILES += \
     $(NOVATEK_FW):$(TARGET_COPY_OUT_RECOVERY)/root/lib/firmware/novatek_ts_tm_fw_6.bin \

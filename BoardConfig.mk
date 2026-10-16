@@ -223,4 +223,4 @@ include vendor/lenovo/TB371FC/BoardConfigVendor.mk
 BOARD_MESA3D_USES_MESON_BUILD := true
 BOARD_MESA3D_GALLIUM_DRIVERS :=
 BOARD_MESA3D_VULKAN_DRIVERS := freedreno
-BOARD_MESA3D_MESON_ARGS := -Dfreedreno-kmds=kgsl
+BOARD_MESA3D_MESON_ARGS := -Dfreedreno-kmds=kgsl -Dgbm=disabled
